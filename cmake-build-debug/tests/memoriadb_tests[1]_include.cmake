@@ -1,0 +1,5 @@
+if(EXISTS "/Users/ilyanyrkov/git-repos/MemoriaDB/cmake-build-debug/tests/memoriadb_tests[1]_tests.cmake")
+  include("/Users/ilyanyrkov/git-repos/MemoriaDB/cmake-build-debug/tests/memoriadb_tests[1]_tests.cmake")
+else()
+  add_test(memoriadb_tests_NOT_BUILT memoriadb_tests_NOT_BUILT)
+endif()
