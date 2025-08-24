@@ -19,12 +19,10 @@ namespace memoria {
         Parser() = default;
 
         // parse one sql statement
-        [[nodiscard]] std::pair<Statement, std::optional<WhereExpr>>
-        prepareStatement(std::string_view sql) const;
+        [[nodiscard]] Statement prepareStatement(std::string_view sql) const;
 
         // parse multiple sql statements
-        [[nodiscard]] std::vector<std::pair<Statement, std::optional<WhereExpr>>>
-        prepareStatements(std::string_view script) const;
+        [[nodiscard]] std::vector<Statement> prepareStatements(std::string_view script) const;
 
     private:
         // ---------- low-level helpers (pure string munging) ----------

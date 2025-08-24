@@ -299,14 +299,14 @@ WhereExpr Parser::parseWhere(std::string_view whereTail) {
             std::string cname = parseIdent(s, i);
             skipSpaces(s, i);
 
-            if (i + 3 <= s.size() && s.substr(i, 3) == "INT") {
+            if (i + 3 <= s.size() && s.substr(i, 3) == "int") {
                 i += 3;
                 cols.push_back(Column{ std::move(cname), ColumnType::Int });
-            } else if (i + 3 <= s.size() && s.substr(i, 3) == "STR") {
+            } else if (i + 3 <= s.size() && s.substr(i, 3) == "str") {
                 i += 3;
                 cols.push_back(Column{ std::move(cname), ColumnType::Str });
             } else {
-                throw ParseError("Expected column type INT or STR");
+                throw ParseError("Expected column type int or str");
             }
 
             skipSpaces(s, i);
@@ -462,31 +462,40 @@ WhereExpr Parser::parseWhere(std::string_view whereTail) {
     }
 
     // -------------------- Public API --------------------
-    std::pair<Statement, std::optional<WhereExpr>>
-    Parser::prepareStatement(std::string_view sql) const {
+    Statement Parser::prepareStatement(std::string_view sql) const {
         const std::string norm = normalizeOne(sql);
         if (norm.empty()) throw ParseError("Empty statement");
 
         auto [base, whereTxt] = peelWhere(norm);
         Statement st = parseBase(base);
 
-        if (!whereTxt) return { std::move(st), std::nullopt };
+        if (!whereTxt) {
+            // No WHERE present; we’re done.
+            return st;
+        }
 
+        // We have a WHERE tail -> only valid for SELECT / UPDATE / DELETE
         WhereExpr w = parseWhere(*whereTxt);
 
         if (auto* sel = std::get_if<Select>(&st)) {
-            // Move into the Select node (two equivalent ways):
-            sel->where.emplace(std::move(w));              // or: sel->where = std::move(w);
-            return { std::move(st), std::nullopt };        // avoid duplicating a move-only value
+            sel->where.emplace(std::move(w));
+            return st;
+        }
+        if (auto* upd = std::get_if<Update>(&st)) {
+            upd->where.emplace(std::move(w));
+            return st;
+        }
+        if (auto* del = std::get_if<Delete>(&st)) {
+            del->where.emplace(std::move(w));
+            return st;
         }
 
-        // For non-SELECT statements (if they don’t store WHERE internally), still return it
-        return { std::move(st), std::optional<WhereExpr>{ std::move(w) } };
+        // CREATE/INSERT must not have WHERE
+        throw ParseError("WHERE is not allowed for this statement type");
     }
 
-std::vector<std::pair<Statement, std::optional<WhereExpr>>>
-Parser::prepareStatements(std::string_view script) const {
-    std::vector<std::pair<Statement, std::optional<WhereExpr>>> out;
+std::vector<Statement> Parser::prepareStatements(std::string_view script) const {
+    std::vector<Statement> out;
     for (auto& raw : splitOutsideQuotes(script)) {
         const std::string norm = normalizeOne(raw);
         if (norm.empty()) continue;

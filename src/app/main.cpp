@@ -28,7 +28,7 @@ int main() {
         if (stmtText.empty()) continue;        // skip blank
 
         try {
-            auto [st, whereOpt] = parser.prepareStatement(stmtText);
+            auto st = parser.prepareStatement(stmtText);
 
             // If your parser attaches WHERE inside nodes (Select/Update/Delete),
             // you can ignore whereOpt. If not, attach it here.

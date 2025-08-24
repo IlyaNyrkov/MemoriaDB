@@ -82,7 +82,7 @@ static void expectWhereEq(const std::optional<WhereExpr>& got,
 
 TEST(Parser, CreateTable_Basic) {
     Parser p;
-    auto [st, where] = p.prepareStatement("CREATE TABLE t (c1 INT, c2 STR);");
+    auto st = p.prepareStatement("CREATE TABLE t (c1 INT, c2 STR);");
 
     ASSERT_TRUE(std::holds_alternative<CreateTable>(st));
     const auto& ct = std::get<CreateTable>(st);
@@ -92,12 +92,11 @@ TEST(Parser, CreateTable_Basic) {
     EXPECT_EQ(ct.schema.columns()[0].type, ColumnType::Int);
     EXPECT_EQ(ct.schema.columns()[1].name, "c2");
     EXPECT_EQ(ct.schema.columns()[1].type, ColumnType::Str);
-    EXPECT_FALSE(where.has_value());
 }
 
 TEST(Parser, Insert_Values) {
     Parser p;
-    auto [st, where] = p.prepareStatement("INSERT INTO t VALUES (42, 'foo');");
+    auto st = p.prepareStatement("INSERT INTO t VALUES (42, 'foo');");
 
     ASSERT_TRUE(std::holds_alternative<Insert>(st));
     const auto& ins = std::get<Insert>(st);
@@ -115,12 +114,11 @@ TEST(Parser, Insert_Values) {
     EXPECT_TRUE(std::holds_alternative<std::string>(row0[1]));
     EXPECT_EQ(std::get<std::string>(row0[1]), "foo");
 
-    EXPECT_FALSE(where.has_value());
 }
 
 TEST(Parser, Insert_WithColumnList) {
     Parser p;
-    auto [st, _] = p.prepareStatement("INSERT INTO t (c2, c1) VALUES (7, 'x');");
+    auto st = p.prepareStatement("INSERT INTO t (c2, c1) VALUES (7, 'x');");
 
     ASSERT_TRUE(std::holds_alternative<Insert>(st));
     const auto& ins = std::get<Insert>(st);
@@ -139,7 +137,7 @@ TEST(Parser, Insert_WithColumnList) {
 
 TEST(Parser, Insert_MultiRow) {
     Parser p;
-    auto [st, _] = p.prepareStatement(
+    auto st = p.prepareStatement(
         "INSERT INTO t VALUES (1,'a'), (2,'b'), (3,'c');"
     );
 
@@ -163,19 +161,22 @@ TEST(Parser, Insert_MultiRow) {
 
 TEST(Parser, Delete_WithWhere) {
     Parser p;
-    auto [st, where] = p.prepareStatement("DELETE FROM t WHERE c1 = 10;");
+    auto st = p.prepareStatement("DELETE FROM t WHERE c1 = 10;");
 
     ASSERT_TRUE(std::holds_alternative<Delete>(st));
     const auto& del = std::get<Delete>(st);
     EXPECT_EQ(del.table, "t");
 
     auto expected = std::optional<WhereExpr>{ W(Cmp("c1", CompareOp::Eq, RowValue{int64_t{10}})) };
-    expectWhereEq(where, expected);
+
+
+    const auto& del = std::get<Delete>(st);
+    expectWhereEq(del.where, expected);
 }
 
 TEST(Parser, Update_Set_WithWhere_AND) {
     Parser p;
-    auto [st, where] = p.prepareStatement(
+    auto st = p.prepareStatement(
         "UPDATE t SET c2 = 7, c1 = 'x' WHERE c2 >= 3 AND c1 != 'y';"
     );
 
@@ -198,12 +199,14 @@ TEST(Parser, Update_Set_WithWhere_AND) {
     std::optional<WhereExpr> expected;
     expected.emplace(std::move(expWhere));
 
-    expectWhereEq(where, expected);
+    const auto& upd = std::get<Update>(st);
+
+    expectWhereEq(upd.where, expected);
 }
 
 TEST(Parser, Select_Star_WithWhere_OR) {
     Parser p;
-    auto [st, where] = p.prepareStatement(
+    auto st = p.prepareStatement(
         "SELECT * FROM t WHERE c2 < 5 OR c1 = 'hi';"
     );
 
@@ -222,15 +225,11 @@ TEST(Parser, Select_Star_WithWhere_OR) {
 
     ASSERT_TRUE(sel.where.has_value());
     expectWhereEq(sel.where, expected);
-
-    // and the pair's optional should be empty if you moved it into Select
-    EXPECT_FALSE(where.has_value());
-
 }
 
 TEST(Parser, Select_Columns_NoWhere) {
     Parser p;
-    auto [st, where] = p.prepareStatement("SELECT c1, c2 FROM t;");
+    auto st = p.prepareStatement("SELECT c1, c2 FROM t;");
 
     ASSERT_TRUE(std::holds_alternative<Select>(st));
     const auto& sel = std::get<Select>(st);
@@ -240,7 +239,6 @@ TEST(Parser, Select_Columns_NoWhere) {
     ASSERT_EQ(cols.size(), 2u);
     EXPECT_EQ(cols[0], "c1");
     EXPECT_EQ(cols[1], "c2");
-    EXPECT_FALSE(where.has_value());
 }
 
 TEST(Parser, Script_SplitOutsideQuotes) {
@@ -255,7 +253,7 @@ TEST(Parser, Script_SplitOutsideQuotes) {
 
     // #1 INSERT
     {
-        const auto& [st, w] = parsed[0];
+        const auto& st = parsed[0];
         ASSERT_TRUE(std::holds_alternative<Insert>(st));
         const auto& ins = std::get<Insert>(st);
         EXPECT_EQ(ins.tableName, "t");
@@ -271,32 +269,34 @@ TEST(Parser, Script_SplitOutsideQuotes) {
         EXPECT_TRUE(std::holds_alternative<std::string>(row0[1]));
         EXPECT_EQ(std::get<std::string>(row0[1]), "a;b;c");
 
-        EXPECT_FALSE(w.has_value());
     }
     // #2 DELETE WHERE
     {
-        const auto& [st, w] = parsed[1];
+        const auto& st = parsed[1];
         ASSERT_TRUE(std::holds_alternative<Delete>(st));
         auto exp = std::optional<WhereExpr>{
             W(Cmp("c1", CompareOp::Eq, RowValue{int64_t{1}}))
         };
-        expectWhereEq(w, exp);
+
+        const auto& del = std::get<Delete>(st);
+
+
+        expectWhereEq(del.where, exp);
     }
     // #3 SELECT *
     {
-        const auto& [st, w] = parsed[2];
+        const auto& st = parsed[2];
         ASSERT_TRUE(std::holds_alternative<Select>(st));
         const auto& sel = std::get<Select>(st);
         ASSERT_TRUE(std::holds_alternative<Select::Star>(sel.projection));
-        EXPECT_FALSE(w.has_value());
     }
 }
 
 
 TEST(Parser, Whitespace_And_TrailingSemicolonOptional) {
     Parser p;
-    auto [st1, w1] = p.prepareStatement("  INSERT INTO t VALUES(2,'x')   ");
-    auto [st2, w2] = p.prepareStatement("INSERT INTO t VALUES(2,'x');");
+    auto st1 = p.prepareStatement("  INSERT INTO t VALUES(2,'x')   ");
+    auto st2 = p.prepareStatement("INSERT INTO t VALUES(2,'x');");
 
     ASSERT_TRUE(std::holds_alternative<Insert>(st1));
     ASSERT_TRUE(std::holds_alternative<Insert>(st2));
@@ -318,9 +318,6 @@ TEST(Parser, Whitespace_And_TrailingSemicolonOptional) {
 
     EXPECT_EQ(std::get<int64_t>(b[0]), 2);
     EXPECT_EQ(std::get<std::string>(b[1]), "x");
-
-    EXPECT_FALSE(w1.has_value());
-    EXPECT_FALSE(w2.has_value());
 }
 
 
