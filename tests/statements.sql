@@ -8,6 +8,8 @@ INSERT INTO Users (id, name, age) VALUES (4, "Charlie", 28), (5, "Diana", 35);
 
 SELECT * FROM Users;
 
+SELECT * FROM Users WHERE (city = "Paris" OR name = "John") AND (age = 25);
+
 UPDATE Users SET city = "Berlin" WHERE name = "Bob";
 
 SELECT * FROM Users;

@@ -14,9 +14,7 @@ namespace memoria {
 
 StatementReader::StatementReader(std::istream& in)
     : in_(in),
-      interactive_(&in == &std::cin),
-      buffer_() {}
-
+      interactive_(&in == &std::cin) {}
 void StatementReader::printPrompt(std::ostream& out) const {
     if (interactive_) { out << "memoriadb> " << std::flush; }
 }
