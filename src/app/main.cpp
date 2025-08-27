@@ -1,43 +1,46 @@
 #include "memoria/Database.h"
-#include "memoria/StatementExecutor.h"
 #include "memoria/Parser.h"
-#include "memoria/StatementReader.h"
 #include "memoria/Printer.h"
-
+#include "memoria/StatementExecutor.h"
+#include "memoria/StatementReader.h"
 
 int main() {
-    using namespace memoria;
+  using namespace memoria;
 
-    Database db;
-    StatementExecutor exec{db};
-    Parser parser;
+  Database db;
+  StatementExecutor exec{db};
+  Parser parser;
 
-    StatementReader reader{std::cin};
-    Printer printer{std::cout, std::cerr};
+  StatementReader reader{std::cin};
+  Printer printer{std::cout, std::cerr};
 
-    std::cout << "memoriadb started" << std::endl;
+  std::cout << "memoriadb started" << std::endl;
 
-    while (true) {
+  while (true) {
 
-        if (reader.readsFromCin()) reader.printPrompt();
+    if (reader.readsFromCin())
+      reader.printPrompt();
 
-        auto stmtTextOpt = reader.next();
-        if (!stmtTextOpt) break;               // EOF
+    auto stmtTextOpt = reader.next();
+    if (!stmtTextOpt)
+      break; // EOF
 
-        const std::string& stmtText = *stmtTextOpt;
-        if (stmtText.empty()) continue;        // skip blank
+    const std::string &stmtText = *stmtTextOpt;
+    if (stmtText.empty())
+      continue; // skip blank
 
-        try {
-            auto st = parser.prepareStatement(stmtText);
+    try {
+      auto st = parser.prepareStatement(stmtText);
 
-            // If your parser attaches WHERE inside nodes (Select/Update/Delete),
-            // you can ignore whereOpt. If not, attach it here.
+      // If your parser attaches WHERE inside nodes (Select/Update/Delete),
+      // you can ignore whereOpt. If not, attach it here.
 
-            auto result = exec.execute(st);
-            if (result) printer.printQueryResult(*result);
-        } catch (const std::exception& e) {
-            printer.printError(e);
-        }
+      auto result = exec.execute(st);
+      if (result)
+        printer.printQueryResult(*result);
+    } catch (const std::exception &e) {
+      printer.printError(e);
     }
-    return 0;
+  }
+  return 0;
 }

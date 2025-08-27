@@ -23,7 +23,7 @@ add_library(memoriadb STATIC
 )
 
 target_include_directories(memoriadb
-        PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/src
+        PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
 add_executable(memoriadb_cli

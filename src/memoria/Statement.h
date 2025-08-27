@@ -5,72 +5,76 @@
 #ifndef STATEMENT_H
 #define STATEMENT_H
 
-#include <string>
-#include <optional>
 #include "Row.h"
 #include "Schema.h"
+#include <optional>
+#include <string>
 
 // ==== Where Statements ====
 
 namespace memoria {
-    enum class CompareOp { Eq, Neq, Lt, Gt, Le, Ge };
+enum class CompareOp { Eq, Neq, Lt, Gt, Le, Ge };
 
-    struct Comparison {
-        std::string column;
-        CompareOp   op;
-        RowValue literal;
-    };
+struct Comparison {
+  std::string column;
+  CompareOp op;
+  RowValue literal;
+};
 
-    struct And;
-    struct Or;
+struct And;
+struct Or;
 
-    using Where = Comparison;
-    // recursive definition,
-    using WhereExpr = std::variant<Comparison, And, Or>;
-    struct And { std::unique_ptr<WhereExpr> lhs, rhs; };
-    struct Or  { std::unique_ptr<WhereExpr> lhs, rhs; };
+using Where = Comparison;
+// recursive definition,
+using WhereExpr = std::variant<Comparison, And, Or>;
+struct And {
+  std::unique_ptr<WhereExpr> lhs, rhs;
+};
+struct Or {
+  std::unique_ptr<WhereExpr> lhs, rhs;
+};
 
-    // ===== SQL Statements =====
-    struct CreateTable {
-        std::string tableName;
-        Schema schema;
-    };
+// ===== SQL Statements =====
+struct CreateTable {
+  std::string tableName;
+  Schema schema;
+};
 
-    struct Insert {
-        std::string tableName;
-        std::vector<std::string> columnNames;
-        std::vector<std::vector<RowValue>> rows;
-    };
+struct Insert {
+  std::string tableName;
+  std::vector<std::string> columnNames;
+  std::vector<std::vector<RowValue>> rows;
+};
 
-    struct Delete {
-        std::string table;
-        // if nullopt -> delete all rows
-        std::optional<WhereExpr> where;
-    };
+struct Delete {
+  std::string table;
+  // if nullopt -> delete all rows
+  std::optional<WhereExpr> where;
+};
 
-    struct Assignment {
-        std::string column;
-        RowValue    value;
-    };
+struct Assignment {
+  std::string column;
+  RowValue value;
+};
 
-    struct Update {
-        std::string table;
-        // SET col = value, ...
-        std::vector<Assignment> set;
-        std::optional<WhereExpr> where;
-    };
+struct Update {
+  std::string table;
+  // SET col = value, ...
+  std::vector<Assignment> set;
+  std::optional<WhereExpr> where;
+};
 
-    struct Select {
-        std::string table;
-        // projection: either * or a list of names
-        struct Star { };
-        using Projection = std::variant<Star, std::vector<std::string>>;
-        Projection projection;
-        std::optional<WhereExpr> where;
-    };
+struct Select {
+  std::string table;
+  // projection: either * or a list of names
+  struct Star {};
+  using Projection = std::variant<Star, std::vector<std::string>>;
+  Projection projection;
+  std::optional<WhereExpr> where;
+};
 
-    using Statement = std::variant<CreateTable, Insert, Delete, Update, Select>;
+using Statement = std::variant<CreateTable, Insert, Delete, Update, Select>;
 
-}
+} // namespace memoria
 
-#endif //STATEMENT_H
+#endif // STATEMENT_H

@@ -8,11 +8,10 @@
 #include <functional>
 
 namespace memoria {
-    class Row;
+class Row;
 
-    using Predicate = std::function<bool(const Row&)>;
+using Predicate = std::function<bool(const Row &)>;
 
-}
+} // namespace memoria
 
-
-#endif //PREDICATE_H
+#endif // PREDICATE_H

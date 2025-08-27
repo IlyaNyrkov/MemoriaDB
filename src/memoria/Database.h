@@ -6,24 +6,24 @@
 #define DATABASE_H
 
 #pragma once
+#include "Table.h"
 #include <string>
 #include <string_view>
 #include <unordered_map>
-#include "Table.h"
 
 namespace memoria {
-    class Database {
-    public:
-        Database() = default;
-        void createTable(std::string tableName, Schema schema); // throws on duplicate
-        Table&       getTable(std::string tableName);
-        [[nodiscard]] const Table& getTable(std::string tableName) const;
-        [[nodiscard]] bool hasTable(std::string tableName) const noexcept;
+class Database {
+public:
+  Database() = default;
+  void createTable(std::string tableName, Schema schema); // throws on duplicate
+  Table &getTable(std::string tableName);
+  [[nodiscard]] const Table &getTable(std::string tableName) const;
+  [[nodiscard]] bool hasTable(std::string tableName) const noexcept;
 
-    private:
-        std::unordered_map<std::string, Table> tables_;
-    };
+private:
+  std::unordered_map<std::string, Table> tables_;
+};
 
 } // namespace memoria
 
-#endif //DATABASE_H
+#endif // DATABASE_H
