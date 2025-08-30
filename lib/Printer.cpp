@@ -109,4 +109,4 @@ void Printer::printTable(const std::vector<std::string> &header,
   }
 }
 
-}
+} // namespace memoria

@@ -458,7 +458,7 @@ static Statement parseInsertStmt(std::string_view s, std::size_t &i) {
     if (i < s.size() && s[i] == ',') {
       ++i;
       continue;
-    }      // next row
+    } // next row
     break; // no more rows
   }
 
@@ -623,4 +623,4 @@ bool Parser::ieqPrefix(std::string_view s, std::string_view kw) {
   return starts_with(s, kw);
 }
 
-}
+} // namespace memoria

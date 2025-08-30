@@ -9,4 +9,19 @@ TODO:
    5. GCov
    6. Linters
    7. Write tests
-3. Prepare module list
+
+
+## Clang-format
+
+Check clang formating:
+```bash
+ git ls-files '*.c' '*.cc' '*.cpp' '*.cxx' '*.h' '*.hh' '*.hpp' \
+  | xargs clang-format -i --dry-run -style=file 
+```
+
+Tranform files to clang format:
+```bash
+ git ls-files '*.c' '*.cc' '*.cpp' '*.cxx' '*.h' '*.hh' '*.hpp' \
+  | xargs clang-format -i -style=file 
+```
+

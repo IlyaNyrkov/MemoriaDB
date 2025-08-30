@@ -6,7 +6,6 @@
 
 int main() {
   using namespace memoria;
-
   Database db;
   StatementExecutor exec{db};
   Parser parser;

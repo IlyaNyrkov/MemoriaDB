@@ -7,6 +7,7 @@
 
 #include "memoria/Database.h"
 #include "memoria/Statement.h"
+#include <functional>
 #include <memoria/Row.h>
 #include <memory>
 #include <optional>
