@@ -7,8 +7,11 @@
 
 #include "Row.h"
 #include "Schema.h"
+
+#include <memory>
 #include <optional>
 #include <string>
+#include <variant>
 
 // ==== Where Statements ====
 
@@ -16,9 +19,9 @@ namespace memoria {
 enum class CompareOp { Eq, Neq, Lt, Gt, Le, Ge };
 
 struct Comparison {
-  std::string column;
-  CompareOp op;
-  RowValue literal;
+    std::string column;
+    CompareOp op;
+    RowValue literal;
 };
 
 struct And;
@@ -28,49 +31,51 @@ using Where = Comparison;
 // recursive definition,
 using WhereExpr = std::variant<Comparison, And, Or>;
 struct And {
-  std::unique_ptr<WhereExpr> lhs, rhs;
+    std::unique_ptr<WhereExpr> lhs;
+    std::unique_ptr<WhereExpr> rhs;
 };
 struct Or {
-  std::unique_ptr<WhereExpr> lhs, rhs;
+    std::unique_ptr<WhereExpr> lhs;
+    std::unique_ptr<WhereExpr> rhs;
 };
 
 // ===== SQL Statements =====
 struct CreateTable {
-  std::string tableName;
-  Schema schema;
+    std::string tableName;
+    Schema schema;
 };
 
 struct Insert {
-  std::string tableName;
-  std::vector<std::string> columnNames;
-  std::vector<std::vector<RowValue>> rows;
+    std::string tableName;
+    std::vector<std::string> columnNames;
+    std::vector<std::vector<RowValue>> rows;
 };
 
 struct Delete {
-  std::string table;
-  // if nullopt -> delete all rows
-  std::optional<WhereExpr> where;
+    std::string table;
+    // if nullopt -> delete all rows
+    std::optional<WhereExpr> where;
 };
 
 struct Assignment {
-  std::string column;
-  RowValue value;
+    std::string column;
+    RowValue value;
 };
 
 struct Update {
-  std::string table;
-  // SET col = value, ...
-  std::vector<Assignment> set;
-  std::optional<WhereExpr> where;
+    std::string table;
+    // SET col = value, ...
+    std::vector<Assignment> set;
+    std::optional<WhereExpr> where;
 };
 
 struct Select {
-  std::string table;
-  // projection: either * or a list of names
-  struct Star {};
-  using Projection = std::variant<Star, std::vector<std::string>>;
-  Projection projection;
-  std::optional<WhereExpr> where;
+    std::string table;
+    // projection: either * or a list of names
+    struct Star {};
+    using Projection = std::variant<Star, std::vector<std::string>>;
+    Projection projection;
+    std::optional<WhereExpr> where;
 };
 
 using Statement = std::variant<CreateTable, Insert, Delete, Update, Select>;

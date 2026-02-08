@@ -15,18 +15,18 @@ namespace memoria {
 using RowValue = std::variant<int64_t, std::string>;
 
 class Row {
-public:
-  Row();
-  explicit Row(std::vector<RowValue> data);
-  Row(std::initializer_list<RowValue> init);
+  public:
+    Row();
+    explicit Row(std::vector<RowValue> data);
+    Row(std::initializer_list<RowValue> init);
 
-  [[nodiscard]] const RowValue &at(std::size_t i) const;
-  [[nodiscard]] RowValue &at(std::size_t i);
+    [[nodiscard]] const RowValue& at(std::size_t i) const;
+    [[nodiscard]] RowValue& at(std::size_t i);
 
-  [[nodiscard]] std::size_t size() const noexcept;
+    [[nodiscard]] std::size_t size() const noexcept;
 
-private:
-  std::vector<RowValue> data_;
+  private:
+    std::vector<RowValue> data_;
 };
 
 } // namespace memoria

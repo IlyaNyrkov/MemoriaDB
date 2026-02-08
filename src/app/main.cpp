@@ -5,41 +5,39 @@
 #include "memoria/StatementReader.h"
 
 int main() {
-  using namespace memoria;
-  Database db;
-  StatementExecutor exec{db};
-  Parser parser;
+    using namespace memoria;
 
-  StatementReader reader{std::cin};
-  Printer printer{std::cout, std::cerr};
+    Database db;
+    StatementExecutor exec{db};
+    Parser parser;
 
-  std::cout << "memoriadb started" << std::endl;
+    StatementReader reader{std::cin};
+    Printer printer{std::cout, std::cerr};
 
-  while (true) {
+    std::cout << "memoriadb started" << std::endl;
 
-    if (reader.readsFromCin())
-      reader.printPrompt();
+    while (true) {
 
-    auto stmtTextOpt = reader.next();
-    if (!stmtTextOpt)
-      break; // EOF
+        if (reader.readsFromCin())
+            reader.printPrompt();
 
-    const std::string &stmtText = *stmtTextOpt;
-    if (stmtText.empty())
-      continue; // skip blank
+        auto stmtTextOpt = reader.next();
+        if (!stmtTextOpt)
+            break; // EOF
 
-    try {
-      auto st = parser.prepareStatement(stmtText);
+        const std::string& stmtText = *stmtTextOpt;
+        if (stmtText.empty())
+            continue;
 
-      // If your parser attaches WHERE inside nodes (Select/Update/Delete),
-      // you can ignore whereOpt. If not, attach it here.
+        try {
+            auto st = parser.prepareStatement(stmtText);
 
-      auto result = exec.execute(st);
-      if (result)
-        printer.printQueryResult(*result);
-    } catch (const std::exception &e) {
-      printer.printError(e);
+            auto result = exec.execute(st);
+            if (result)
+                printer.printQueryResult(*result);
+        } catch (const std::exception& e) {
+            printer.printError(e);
+        }
     }
-  }
-  return 0;
+    return 0;
 }

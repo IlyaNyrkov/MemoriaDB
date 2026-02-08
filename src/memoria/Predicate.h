@@ -10,7 +10,7 @@
 namespace memoria {
 class Row;
 
-using Predicate = std::function<bool(const Row &)>;
+using Predicate = std::function<bool(const Row&)>;
 
 } // namespace memoria
 

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.28)
+cmake_minimum_required(VERSION 3.23)
 project(MemoriaDB)
 
 set(CMAKE_CXX_STANDARD 23)
@@ -11,7 +11,7 @@ file(GLOB MEMORIA_PUBLIC_HEADERS CONFIGURE_DEPENDS
 file(GLOB MEMORIA_PRIVATE_HEADERS CONFIGURE_DEPENDS
         src/memoria_internal/*.h)
 file(GLOB MEMORIA_SOURCES CONFIGURE_DEPENDS
-        lib/*.cpp extras/io/*.cpp)   # include persistence when present
+        lib/*.cpp extras/io/*.cpp)
 
 add_library(memoriadb STATIC
         ${MEMORIA_PUBLIC_HEADERS}
@@ -23,7 +23,7 @@ add_library(memoriadb STATIC
 )
 
 target_include_directories(memoriadb
-        PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src
+        PUBLIC  ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
 
 add_executable(memoriadb_cli
